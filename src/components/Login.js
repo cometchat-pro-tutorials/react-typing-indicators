@@ -1,6 +1,5 @@
 import React from 'react';
 import { CometChat } from '@cometchat-pro/chat';
-import { NotificationManager } from 'react-notifications';
 
 import loginIllustration from '../assets/login-illustration.svg';
 
@@ -15,7 +14,7 @@ class Login extends React.Component {
     event.preventDefault();
     let { username } = this.state;
     if(!username){
-      NotificationManager.error('Username must not be empty', 'Login Failed');
+        alert("Username must not be empty");
       return;
     }
     this.setState({
@@ -23,15 +22,12 @@ class Login extends React.Component {
     })
     CometChat.login(username, process.env.REACT_APP_COMETCHAT_API_KEY).then(
       user => {
-        NotificationManager.success('You are now logged in', 'Login Success');
-        this.setState({ username: '', isLoading: false });
-        this.props.history.push({
-          pathname: '/chat',
-          state: { user }
-        })
+        alert("Login Successful");
+        this.props.setUser(user);
       },
       error => {
-        NotificationManager.error('Please try again', 'Login Failed');
+        console.log(error);
+        alert("Login Failed");
         this.setState({
           isLoading: false
         })
@@ -49,7 +45,7 @@ class Login extends React.Component {
           <div className='login-container'>
             <div className='login-form-column'>
               <form>
-                <h3>Welcome!</h3>
+                <h3 className='login-text-header'>Welcome!</h3>
                 <p>
                   Login with the username "superhero1" or "superhero2" to test this React-CometChat application. To create your own user, visit{' '}
                   <a href='https://prodocs.cometchat.com/reference#createuser'>
@@ -57,7 +53,7 @@ class Login extends React.Component {
                   </a>
                 </p>
                 <div className='form-wrapper'>
-                  <label>Username</label>
+                  <label className='login-label'>Username</label>
                   <input
                     type='text'
                     name='username'
@@ -69,7 +65,7 @@ class Login extends React.Component {
                     required
                   />
                 </div>
-                <button type='submit' onClick={this.handleLogin} disabled={isLoading}>
+                <button className='button-submit' type='submit' onClick={this.handleLogin} disabled={isLoading}>
                   LOG IN {loadingSpinner}
                 </button>
               </form>

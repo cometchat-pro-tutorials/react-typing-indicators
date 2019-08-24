@@ -1,9 +1,6 @@
 import React from 'react';
 import {CometChat} from '@cometchat-pro/chat';
-import MDSpinner from 'react-md-spinner';
-
-import emptyChatImage from '../assets/empty-state.svg';
-import logoImage from '../assets/logo.svg';
+import {ChatBox} from 'react-chatbox-component';
 
 const {REACT_APP_COMETCHAT_GUID} = process.env;
 
@@ -11,30 +8,23 @@ class Chat extends React.Component {
   constructor(props) {
     super();
     this.state = {
-      message: '',
-      chat: [],
+      messages: [],
       isLoading: true,
-      user: props.location.state? props.location.state.user : '',
-      isSending: false,
+      user: props.user,
+      currentlyTyping: [],
     };
-  }
-
-  componentWillMount(){
-    if(!this.props.location.state){
-      this.props.history.push('/login');
-    }
   }
 
   componentDidMount() {
     let messagesRequest = new CometChat.MessagesRequestBuilder()
       .setGUID(REACT_APP_COMETCHAT_GUID)
-      .setLimit(100)
+      .setLimit(20)
       .build();
 
     messagesRequest.fetchPrevious().then(
       messages => {
         this.setState({
-          chat: messages,
+          messages: messages,
           isLoading: false,
         });
       },
@@ -47,178 +37,130 @@ class Chat extends React.Component {
       'CC-LISTENER-ID',
       new CometChat.MessageListener({
         onTextMessageReceived: message => {
-          let {chat} = this.state;
+          let {messages} = this.state;
           console.log('Incoming Message Log', {message});
-          chat.push(message);
-          console.log(chat);
+          messages.push(message);
           this.setState({
-            chat
+            messages,
           });
         },
-        onTypingStarted: (typingIndicator) => {
-          // CALL FUNCTION TO REVEAL TYPING INDICATOR
-          console.log("Typing started :", typingIndicator);
+        onTypingStarted: typingIndicator => {
+          console.log('Typing started :', typingIndicator);
+          let {currentlyTyping} = this.state;
+          let {sender} = typingIndicator;
+          if (currentlyTyping.length > 0) {
+            if (!currentlyTyping.some(element => element.uid === sender.uid)) {
+              currentlyTyping.push(sender);
+            }
+          } else {
+            currentlyTyping.push(sender);
+          }
+          this.setState({
+            currentlyTyping,
+          });
         },
-        onTypingEnded: (typingIndicator) => {
-          // CALL FUNCTION TO REMOVE TYPING INDICATOR
-          console.log("Typing ended :", typingIndicator);
-        }
+        onTypingEnded: typingIndicator => {
+          console.log('Typing ended :', typingIndicator);
+          let {currentlyTyping} = this.state;
+          let {sender} = typingIndicator;
+          let newCurrentlyTyping = currentlyTyping.filter(
+            element => element.uid !== sender.uid
+          );
+          this.setState({
+            currentlyTyping: newCurrentlyTyping,
+          });
+        },
       })
     );
   }
 
-  componentDidUpdate() {
-    if (this.state.message) {
-      let receiverId = REACT_APP_COMETCHAT_GUID;
-      let receiverType = CometChat.RECEIVER_TYPE.GROUP;
-      let metadata = {
-        text : "TEXT_INFO_TO_BE_SENT"
-      };
+  typingListener = () => {
+    const receiverId = REACT_APP_COMETCHAT_GUID;
+    const receiverType = CometChat.RECEIVER_TYPE.GROUP;
 
-      let typingNotification = new CometChat.TypingIndicator(receiverId,receiverType,metadata);
-      console.log("Sending typing notification to listener");
-      CometChat.startTyping(typingNotification);
-    }
-    this.scrollToBottom();
+    const typingNotification = new CometChat.TypingIndicator(
+      receiverId,
+      receiverType
+    );
+    console.log('Sending typing notification to listener');
+    CometChat.startTyping(typingNotification);
   }
 
   componentWillUnmount() {
     CometChat.removeMessageListener('CC-LISTENER-ID');
   }
 
-  handleSendMessage = event => {
-    event.preventDefault();
-    this.setState({
-      isSending: true
-    });
-    const {message} = this.state;
-
-    let textMessage = new CometChat.TextMessage(
-      REACT_APP_COMETCHAT_GUID,
-      message,
-      CometChat.MESSAGE_TYPE.TEXT,
-      CometChat.RECEIVER_TYPE.GROUP
-    );
-
-    CometChat.sendMessage(textMessage).then(
-      message => {
-        const { chat } = this.state;
-        chat.push(message);
-        this.setState({
-          chat
-        })
-        console.log('Message sent successfully:', message);
-      },
-      error => {
-        console.log('Message sending failed with error:', error);
-      }
-    );
-    this.setState({
-      message: '',
-      isSending: false,
-    });
+  handleSendMessage = message => {
+    if(message){
+      let textMessage = new CometChat.TextMessage(
+        REACT_APP_COMETCHAT_GUID,
+        message,
+        CometChat.MESSAGE_TYPE.TEXT,
+        CometChat.RECEIVER_TYPE.GROUP
+      );
+  
+      CometChat.sendMessage(textMessage).then(
+        message => {
+          const {messages} = this.state;
+          messages.push(message);
+          this.setState({
+            messages,
+          });
+          console.log('Message sent successfully:', message);
+        },
+        error => {
+          console.log('Message sending failed with error:', error);
+        }
+      );
+    }
   };
 
   scrollToBottom = () => {
-    const chat = document.getElementById("endofchat");
+    const chat = document.getElementById('end-of-chat');
     chat.scrollIntoView();
-  }
+  };
 
   render() {
-    let {chat, message, isLoading, isSending, user} = this.state;
-    let chatContent = (
-      <div className='loading-messages-container'>
-        <MDSpinner size='100' />
-        <span className='loading-text'>Loading Messages</span>
+    let {messages, isLoading, user, currentlyTyping} = this.state;
+
+    let typingText = '';
+    let typingAnimation = (
+      <React.Fragment>
+        <span className='typing-dot'></span>
+        <span className='typing-dot'></span>
+        <span className='typing-dot'></span>
+      </React.Fragment>
+    );
+    if (currentlyTyping.length === 1) {
+      typingText = `${currentlyTyping[0].name} is typing `;
+    } else if (currentlyTyping.length === 2) {
+      typingText = `${currentlyTyping[0].name} and ${currentlyTyping[1].name} are typing `;
+    } else if (currentlyTyping.length > 2) {
+      typingText = `Several people are typing `;
+    } else {
+      typingText = '';
+    }
+    console.log(typingText);
+
+    const typingIndicator = (
+      <div id='typing-indicator'>
+        {typingText} {typingText ? typingAnimation : ''}
       </div>
     );
-    let sendButton = isSending? <div className="message-send-spinner"><MDSpinner size='30'/></div>: <div className="message-send-icon" onClick={this.handleSendMessage}><i className="fa fa-paper-plane fa-2x"></i></div>;
-
-    if (!isLoading && !chat.length) {
-      chatContent = (
-        <div className='text-center img-fluid empty-chat'>
-          <div className='empty-chat-holder'>
-            <img src={emptyChatImage} className='img-res' alt='empty chat' />
-          </div>
-
-          <div>
-            <h2> No new message? </h2>
-            <h6 className='empty-chat-sub-title'>
-              Send your first message below.
-            </h6>
-          </div>
-        </div>
-      );
-    } 
-    else if (!isLoading && chat.length) {
-      chatContent = chat.map(chat => {
-        let isUser = user.uid === chat.sender.uid;
-        let renderName;
-        if (isUser) {
-          renderName = null;
-        } else {
-          renderName = (
-            <div className='sender-name'>{chat.sender.name}</div>
-          );
-        }
-        return (
-          <div key={chat.id} className='chat-bubble-row' style={{flexDirection: isUser ? 'row-reverse' : 'row'}}>
-              <img src={chat.sender.avatar} alt='sender avatar' className='avatar' style={isUser ? {marginLeft: '30px'} : {marginRight: '30px'}} />
-              <div className={`chat-bubble ${isUser? 'is-user':'is-other'}`}>
-                {renderName}
-                <div className='message' style={{color: isUser ? '#FFF' : '#2D313F'}}>
-                  {chat.text}
-                </div>
-              </div>
-          </div>
-        )
-      });
-    }
 
     return (
-      <div className='chat-container'>
-        <nav>
-            <div className="nav-left-section">
-                <img className="logo" src={logoImage} alt="logo" />
-                <span className="title">Chat</span>
-            </div>
-            <div className="nav-right-section">
-                <span className="welcome-message">Welcome <b>{ user.name }</b> </span> <img src={user.avatar} className="avatar" alt="user avatar" />
-            </div>
-        </nav>
-        <div className='chat'>
-          <div className='container'>
-            <div className='chat-header'>
-              <div className='active'>
-                <h5>#General</h5>
-              </div>
-            </div>
-
-            <div className='chat-page'>
-                  <div className='msg-page'>
-                    {chatContent}
-                    <div id='endofchat'></div>
-                  </div>
-                  <div className='msg-footer'>
-                    <form
-                      className='message-form'
-                      onSubmit={this.handleSendMessage}>
-                      <div className='input-group'>
-                        <input
-                          type='text'
-                          className='form-control message-input'
-                          placeholder='Type something'
-                          value={message}
-                          onChange={ event => this.setState({ message: event.target.value }) }
-                          required
-                        />
-                        {sendButton}
-                      </div>
-                    </form>
-                  </div>
-            </div>
-          </div>
+      <div className='container' style={{maxWidth: '800px', paddingTop: '100px'}}>
+        <div className='chat-header'>
+          <h5>Chat</h5>
         </div>
+        <ChatBox 
+          user={user}
+          messages={messages}
+          onSubmit={this.handleSendMessage}
+          isLoading={isLoading}
+          typingListener={this.typingListener}
+          typingIndicator={typingIndicator}
+        />
       </div>
     );
   }

@@ -4,6 +4,9 @@ This sample app shows how to build a React chat application using CometChat Pro 
 
 SCREENSHOTS
 
+![Typing indicator 1](screenshots/screenshot_1.png)
+![Typing indicator 2](screenshots/screenshot_2.png)
+
 Jump straight into the code or read the accompanying step-by-step guide here on our blog.
 
 ## Technology
@@ -12,6 +15,7 @@ This demo uses:
 
 * React
 * CometChat Pro JavaScript SDK
+* Typing animation in CSS by [Jimmy Yoon](https://codepen.io/jyoon93/pen/POoPeM)
 
 ## Running the demo locally
 
