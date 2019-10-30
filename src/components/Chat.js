@@ -16,7 +16,7 @@ class Chat extends React.Component {
   }
 
   componentDidMount() {
-    let messagesRequest = new CometChat.MessagesRequestBuilder()
+    const messagesRequest = new CometChat.MessagesRequestBuilder()
       .setGUID(REACT_APP_COMETCHAT_GUID)
       .setLimit(20)
       .build();
@@ -37,7 +37,7 @@ class Chat extends React.Component {
       'CC-LISTENER-ID',
       new CometChat.MessageListener({
         onTextMessageReceived: message => {
-          let {messages} = this.state;
+          const {messages} = this.state;
           console.log('Incoming Message Log', {message});
           messages.push(message);
           this.setState({
@@ -46,8 +46,8 @@ class Chat extends React.Component {
         },
         onTypingStarted: typingIndicator => {
           console.log('Typing started :', typingIndicator);
-          let {currentlyTyping} = this.state;
-          let {sender} = typingIndicator;
+          const {currentlyTyping} = this.state;
+          const {sender} = typingIndicator;
           if (currentlyTyping.length > 0) {
             if (!currentlyTyping.some(element => element.uid === sender.uid)) {
               currentlyTyping.push(sender);
@@ -61,9 +61,9 @@ class Chat extends React.Component {
         },
         onTypingEnded: typingIndicator => {
           console.log('Typing ended :', typingIndicator);
-          let {currentlyTyping} = this.state;
-          let {sender} = typingIndicator;
-          let newCurrentlyTyping = currentlyTyping.filter(
+          const {currentlyTyping} = this.state;
+          const {sender} = typingIndicator;
+          const newCurrentlyTyping = currentlyTyping.filter(
             element => element.uid !== sender.uid
           );
           this.setState({
@@ -92,7 +92,7 @@ class Chat extends React.Component {
 
   handleSendMessage = message => {
     if(message){
-      let textMessage = new CometChat.TextMessage(
+      const textMessage = new CometChat.TextMessage(
         REACT_APP_COMETCHAT_GUID,
         message,
         CometChat.MESSAGE_TYPE.TEXT,
@@ -121,10 +121,10 @@ class Chat extends React.Component {
   };
 
   render() {
-    let {messages, isLoading, user, currentlyTyping} = this.state;
+    const {messages, isLoading, user, currentlyTyping} = this.state;
 
     let typingText = '';
-    let typingAnimation = (
+    const typingAnimation = (
       <React.Fragment>
         <span className='typing-dot'></span>
         <span className='typing-dot'></span>

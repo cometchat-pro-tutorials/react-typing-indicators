@@ -3,7 +3,6 @@ import { CometChat } from '@cometchat-pro/chat';
 
 import 'react-chatbox-component/dist/style.css';
 import './App.css';
-import Login from './components/Login';
 import Chat from './components/Chat';
 
 CometChat.init(process.env.REACT_APP_COMETCHAT_APP_ID);
@@ -13,8 +12,31 @@ class App extends React.Component {
     user: null,
   };
 
-  setUser = user => {
-    this.setState({ user: user })
+  componentDidMount(){
+    this.promptUsername();
+  }
+
+  handleLogin = username => {
+    if(!username){
+        alert("Username must not be empty");
+        this.promptUsername();
+    }
+    CometChat.login(username, process.env.REACT_APP_COMETCHAT_API_KEY).then(
+      user => {
+        alert("Login Successful");
+        this.setState({ user: user })
+      },
+      error => {
+        console.log(error);
+        alert("Login Failed");
+        this.promptUsername();
+      }
+    );
+  };
+
+  promptUsername = () => {
+    const username = prompt("Welcome to React chat app powered by CometChat. Login with the username superhero1 or superhero2.");
+    this.handleLogin(username);
   }
 
   render() {
@@ -23,7 +45,7 @@ class App extends React.Component {
     if (user) {
       return <Chat user={user} />;
     } else {
-      return <Login setUser={this.setUser} />;
+      return false;
     }
   }
 }
