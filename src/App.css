@@ -30,37 +30,6 @@ body {
   align-items: center;
 }
 
-#typing-indicator {
-  padding-bottom: 30px;
-  padding-top: 30px;
-  padding-left: 20px;
-}
-
-.typing-dot {
-  height: 5px;
-  width: 5px;
-  border-radius: 100%;
-  margin-left: 4px;
-  display: inline-block;
-  background-color: #5C5E69;
-  animation: 1.2s typing-dot ease-in-out infinite;
-}
-
-.typing-dot:nth-of-type(2) {
-  animation-delay: 0.15s;
-}
-
-.typing-dot:nth-of-type(3) {
-  animation-delay: 0.25s;
-}
-
-@keyframes typing-dot {
-  15% {
-    transform: translateY(-35%);
-    opacity: 0.5;
-  }
-  30% {
-    transform: translateY(0%);
-    opacity: 1;
-  }
+#end-of-chat {
+  padding-top: 10px;
 }

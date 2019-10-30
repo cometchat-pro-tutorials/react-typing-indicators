@@ -11,7 +11,6 @@ class Chat extends React.Component {
       messages: [],
       isLoading: true,
       user: props.user,
-      currentlyTyping: [],
     };
   }
 
@@ -43,47 +42,9 @@ class Chat extends React.Component {
           this.setState({
             messages,
           });
-        },
-        onTypingStarted: typingIndicator => {
-          console.log('Typing started :', typingIndicator);
-          const {currentlyTyping} = this.state;
-          const {sender} = typingIndicator;
-          if (currentlyTyping.length > 0) {
-            if (!currentlyTyping.some(element => element.uid === sender.uid)) {
-              currentlyTyping.push(sender);
-            }
-          } else {
-            currentlyTyping.push(sender);
-          }
-          this.setState({
-            currentlyTyping,
-          });
-        },
-        onTypingEnded: typingIndicator => {
-          console.log('Typing ended :', typingIndicator);
-          const {currentlyTyping} = this.state;
-          const {sender} = typingIndicator;
-          const newCurrentlyTyping = currentlyTyping.filter(
-            element => element.uid !== sender.uid
-          );
-          this.setState({
-            currentlyTyping: newCurrentlyTyping,
-          });
-        },
+        }
       })
     );
-  }
-
-  typingListener = () => {
-    const receiverId = REACT_APP_COMETCHAT_GUID;
-    const receiverType = CometChat.RECEIVER_TYPE.GROUP;
-
-    const typingNotification = new CometChat.TypingIndicator(
-      receiverId,
-      receiverType
-    );
-    console.log('Sending typing notification to listener');
-    CometChat.startTyping(typingNotification);
   }
 
   componentWillUnmount() {
@@ -121,32 +82,7 @@ class Chat extends React.Component {
   };
 
   render() {
-    const {messages, isLoading, user, currentlyTyping} = this.state;
-
-    let typingText = '';
-    const typingAnimation = (
-      <React.Fragment>
-        <span className='typing-dot'></span>
-        <span className='typing-dot'></span>
-        <span className='typing-dot'></span>
-      </React.Fragment>
-    );
-    if (currentlyTyping.length === 1) {
-      typingText = `${currentlyTyping[0].name} is typing `;
-    } else if (currentlyTyping.length === 2) {
-      typingText = `${currentlyTyping[0].name} and ${currentlyTyping[1].name} are typing `;
-    } else if (currentlyTyping.length > 2) {
-      typingText = `Several people are typing `;
-    } else {
-      typingText = '';
-    }
-    console.log(typingText);
-
-    const typingIndicator = (
-      <div id='typing-indicator'>
-        {typingText} {typingText ? typingAnimation : ''}
-      </div>
-    );
+    const {messages, isLoading, user} = this.state;
 
     return (
       <div className='container' style={{maxWidth: '800px', paddingTop: '100px'}}>
@@ -158,8 +94,6 @@ class Chat extends React.Component {
           messages={messages}
           onSubmit={this.handleSendMessage}
           isLoading={isLoading}
-          typingListener={this.typingListener}
-          typingIndicator={typingIndicator}
         />
       </div>
     );
