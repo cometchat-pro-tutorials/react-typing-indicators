@@ -31,9 +31,13 @@ body {
 }
 
 #typing-indicator {
-  padding-bottom: 30px;
-  padding-top: 30px;
+  padding-bottom: 10px;
+  padding-top: 20px;
   padding-left: 20px;
+}
+
+#end-of-chat {
+  padding-top: 10px;
 }
 
 .typing-dot {

@@ -123,7 +123,6 @@ class Chat extends React.Component {
   render() {
     const {messages, isLoading, user, currentlyTyping} = this.state;
 
-    let typingText = '';
     const typingAnimation = (
       <React.Fragment>
         <span className='typing-dot'></span>
@@ -131,6 +130,7 @@ class Chat extends React.Component {
         <span className='typing-dot'></span>
       </React.Fragment>
     );
+    let typingText = '';
     if (currentlyTyping.length === 1) {
       typingText = `${currentlyTyping[0].name} is typing `;
     } else if (currentlyTyping.length === 2) {
